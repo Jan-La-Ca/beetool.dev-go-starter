@@ -30,13 +30,17 @@ func NewHttp(
 }
 
 func (h *Http) RegisterRoutes(router *gin.RouterGroup) {
-	blogsGroup := router.Group("/v1/blogs")
+	public := router.Group("/public/v1/blogs")
 	{
-		blogsGroup.POST("", h.HandlerCreateBlog())
-		blogsGroup.GET("", h.HandlerListBlogs())
-		blogsGroup.GET("/:id", h.HandlerGetBlogByID())
-		blogsGroup.GET("/slug/:slug", h.HandlerGetBlogBySlug())
-		blogsGroup.PUT("/:id", h.HandlerUpdateBlog())
-		blogsGroup.DELETE("/:id", h.HandlerDeleteBlog())
+		public.GET("", h.HandlerListBlogs())
+		public.GET("/:slug", h.HandlerGetBlogBySlug())
+	}
+	admin := router.Group("/admin/v1/blogs")
+	{
+		admin.POST("", h.HandlerCreateBlog())
+		admin.GET("", h.HandlerListBlogs())
+		admin.GET("/:id", h.HandlerGetBlogByID())
+		admin.PUT("/:id", h.HandlerUpdateBlog())
+		admin.DELETE("/:id", h.HandlerDeleteBlog())
 	}
 }

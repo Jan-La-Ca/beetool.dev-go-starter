@@ -2,7 +2,6 @@ package persistence
 
 import (
 	"context"
-	"errors"
 
 	"gorm.io/gorm"
 
@@ -29,31 +28,33 @@ func (r *BlogRepository) Delete(ctx context.Context, id string) error {
 	return r.db.WithContext(ctx).Where("id = ?", id).Delete(&SQLBlog{}).Error
 }
 
-func (r *BlogRepository) GetAll(ctx context.Context) ([]*domain.Blog, error) {
+func (r *BlogRepository) GetPage(ctx context.Context, offset, limit int) ([]*domain.Blog, int64, error) {
+	var total int64
+	if err := r.db.WithContext(ctx).Model(&SQLBlog{}).Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
 	var sqlBlogs []SQLBlog
-	if err := r.db.WithContext(ctx).Find(&sqlBlogs).Error; err != nil {
-		return nil, err
+	if err := r.db.WithContext(ctx).Offset(offset).Limit(limit).Order("created_at DESC").Find(&sqlBlogs).Error; err != nil {
+		return nil, 0, err
 	}
 	blogs := make([]*domain.Blog, len(sqlBlogs))
 	for i, b := range sqlBlogs {
 		blogs[i] = b.ToDomain()
 	}
-	return blogs, nil
+	return blogs, total, nil
 }
 
 func (r *BlogRepository) GetBySlug(ctx context.Context, slug string) (*domain.Blog, error) {
 	var sqlBlog SQLBlog
-	if err := r.db.WithContext(ctx).Model(&SQLBlog{}).Where("slug = ?", slug).First(&sqlBlog).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, domain.ErrBlogExisted
-		}
+	if err := r.db.WithContext(ctx).Where("slug = ?", slug).First(&sqlBlog).Error; err != nil {
+		return nil, err
 	}
 	return sqlBlog.ToDomain(), nil
 }
 
 func (r *BlogRepository) GetByID(ctx context.Context, id string) (*domain.Blog, error) {
 	var sqlBlog SQLBlog
-	if err := r.db.WithContext(ctx).Model(&SQLBlog{}).Where("id = ?", id).First(&sqlBlog).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where("id = ?", id).First(&sqlBlog).Error; err != nil {
 		return nil, err
 	}
 	return sqlBlog.ToDomain(), nil

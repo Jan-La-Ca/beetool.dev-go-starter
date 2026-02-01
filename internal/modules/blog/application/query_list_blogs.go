@@ -17,14 +17,26 @@ func NewListBlogsQuery(repository domain.IBlogRepository) *ListBlogsQuery {
 	}
 }
 
-func (q *ListBlogsQuery) Execute(ctx context.Context) ([]*domain.DTOBlogResponse, error) {
-	blogs, err := q.repository.GetAll(ctx)
+func (q *ListBlogsQuery) Execute(ctx context.Context, page, limit int) (*domain.DTOBlogListResponse, error) {
+	if page < 1 {
+		page = 1
+	}
+	if limit < 1 || limit > 100 {
+		limit = 10
+	}
+	offset := (page - 1) * limit
+	blogs, total, err := q.repository.GetPage(ctx, offset, limit)
 	if err != nil {
 		return nil, base.ToDomainError(err)
 	}
-	result := make([]*domain.DTOBlogResponse, len(blogs))
+	items := make([]*domain.DTOBlogResponse, len(blogs))
 	for i, b := range blogs {
-		result[i] = domain.NewDTOBlogResponse(b)
+		items[i] = domain.NewDTOBlogResponse(b)
 	}
-	return result, nil
+	return &domain.DTOBlogListResponse{
+		Items: items,
+		Total: total,
+		Page:  page,
+		Limit: limit,
+	}, nil
 }

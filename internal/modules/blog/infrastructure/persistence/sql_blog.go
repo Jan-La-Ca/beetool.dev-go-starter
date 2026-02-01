@@ -1,8 +1,6 @@
 package persistence
 
 import (
-	"time"
-
 	"github.com/dukk308/beetool.dev-go-starter/internal/modules/blog/domain"
 	common "github.com/dukk308/beetool.dev-go-starter/pkgs/base"
 	"github.com/dukk308/beetool.dev-go-starter/pkgs/components/gorm_comp"
@@ -11,13 +9,9 @@ import (
 
 type SQLBlog struct {
 	gorm_comp.SQLModel
-	Title       string     `gorm:"column:title;type:varchar(255);not null"`
-	Slug        string     `gorm:"column:slug;type:varchar(255);uniqueIndex:uni_blogs_slug;not null"`
-	Content     string     `gorm:"column:content;type:text;not null"`
-	Summary     *string    `gorm:"column:summary;type:text"`
-	Status      string     `gorm:"column:status;type:varchar(50);not null;default:draft"`
-	AuthorID    *string    `gorm:"column:author_id;type:uuid"`
-	PublishedAt *time.Time `gorm:"column:published_at;type:timestamp without time zone"`
+	Title   string `gorm:"column:title;type:varchar(255);not null"`
+	Slug    string `gorm:"column:slug;type:varchar(255);uniqueIndex:uni_blogs_slug;not null"`
+	Content string `gorm:"column:content;type:text"`
 }
 
 func (b *SQLBlog) TableName() string {
@@ -32,13 +26,9 @@ func (b *SQLBlog) ToDomain() *domain.Blog {
 			UpdatedAt: b.UpdatedAt,
 			DeletedAt: b.DeletedAt,
 		},
-		Title:       b.Title,
-		Slug:        b.Slug,
-		Content:     b.Content,
-		Summary:     b.Summary,
-		Status:      b.Status,
-		AuthorID:    b.AuthorID,
-		PublishedAt: b.PublishedAt,
+		Title:   b.Title,
+		Slug:    b.Slug,
+		Content: b.Content,
 	}
 }
 
@@ -50,8 +40,4 @@ func (b *SQLBlog) FromDomain(blog *domain.Blog) {
 	b.Title = blog.Title
 	b.Slug = blog.Slug
 	b.Content = blog.Content
-	b.Summary = blog.Summary
-	b.Status = blog.Status
-	b.AuthorID = blog.AuthorID
-	b.PublishedAt = blog.PublishedAt
 }
